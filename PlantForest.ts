@@ -24,6 +24,7 @@ import { Forest } from '@civ-clone/base-terrain-forest/Forest';
 import { Horse } from '@civ-clone/base-terrain-feature-horse/Horse';
 import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
+import PlantingForest from './Rules/PlantingForest';
 
 // TODO: This is specific to the original Civilization and might need to be labelled as `-civ1` as other games have
 //  forests as a feature
@@ -44,28 +45,30 @@ export class PlantForest extends DelayedAction {
   }
 
   perform(): void {
-    const [
-      moveCost,
-    ]: number[] = (this.ruleRegistry() as IMovementCostRegistry)
+    const [moveCost]: number[] = (this.ruleRegistry() as IMovementCostRegistry)
       .process(MovementCost, this.unit(), this)
       .sort((a: number, b: number): number => b - a);
 
-    super.perform(moveCost, (): void => {
-      const terrain = new Forest(),
-        features = this.#terrainFeatureRegistry.getByTerrain(
-          this.from().terrain()
+    super.perform(
+      moveCost,
+      (): void => {
+        const terrain = new Forest(),
+          features = this.#terrainFeatureRegistry.getByTerrain(
+            this.from().terrain()
+          );
+
+        (this.ruleRegistry() as IFeatureRegistry).process(
+          Feature,
+          Horse,
+          terrain
         );
 
-      (this.ruleRegistry() as IFeatureRegistry).process(
-        Feature,
-        Horse,
-        terrain
-      );
+        this.#terrainFeatureRegistry.unregister(...features);
 
-      this.#terrainFeatureRegistry.unregister(...features);
-
-      this.from().setTerrain(terrain);
-    });
+        this.from().setTerrain(terrain);
+      },
+      PlantingForest
+    );
 
     (this.ruleRegistry() as IMovedRegistry).process(Moved, this.unit(), this);
   }

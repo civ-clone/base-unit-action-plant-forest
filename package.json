@@ -1,6 +1,6 @@
 {
   "name": "@civ-clone/base-unit-action-plant-forest",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": "git@github.com:civ-clone/base-unit-action-plant-forest.git",
   "keywords": [
     "typescript",
