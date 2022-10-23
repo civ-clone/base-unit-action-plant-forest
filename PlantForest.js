@@ -13,15 +13,15 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var _PlantForest_terrainFeatureRegistry;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlantForest = void 0;
-const Feature_1 = require("@civ-clone/core-terrain-feature/Rules/Feature");
-const Moved_1 = require("@civ-clone/core-unit/Rules/Moved");
-const MovementCost_1 = require("@civ-clone/core-unit/Rules/MovementCost");
 const RuleRegistry_1 = require("@civ-clone/core-rule/RuleRegistry");
 const TerrainFeatureRegistry_1 = require("@civ-clone/core-terrain-feature/TerrainFeatureRegistry");
 const Turn_1 = require("@civ-clone/core-turn-based-game/Turn");
 const DelayedAction_1 = require("@civ-clone/core-unit/DelayedAction");
+const Feature_1 = require("@civ-clone/core-terrain-feature/Rules/Feature");
 const Forest_1 = require("@civ-clone/base-terrain-forest/Forest");
 const Horse_1 = require("@civ-clone/base-terrain-feature-horse/Horse");
+const Moved_1 = require("@civ-clone/core-unit/Rules/Moved");
+const MovementCost_1 = require("@civ-clone/core-unit/Rules/MovementCost");
 const PlantingForest_1 = require("./Rules/PlantingForest");
 // TODO: This is specific to the original Civilization and might need to be labelled as `-civ1` as other games have
 //  forests as a feature
@@ -33,15 +33,15 @@ class PlantForest extends DelayedAction_1.default {
     }
     perform() {
         const [moveCost] = this.ruleRegistry()
-            .process(MovementCost_1.MovementCost, this.unit(), this)
+            .process(MovementCost_1.default, this.unit(), this)
             .sort((a, b) => b - a);
         super.perform(moveCost, () => {
-            const terrain = new Forest_1.Forest(), features = __classPrivateFieldGet(this, _PlantForest_terrainFeatureRegistry, "f").getByTerrain(this.from().terrain());
-            this.ruleRegistry().process(Feature_1.Feature, Horse_1.Horse, terrain);
+            const terrain = new Forest_1.default(), features = __classPrivateFieldGet(this, _PlantForest_terrainFeatureRegistry, "f").getByTerrain(this.from().terrain());
+            this.ruleRegistry().process(Feature_1.default, Horse_1.default, terrain);
             __classPrivateFieldGet(this, _PlantForest_terrainFeatureRegistry, "f").unregister(...features);
             this.from().setTerrain(terrain);
         }, PlantingForest_1.default);
-        this.ruleRegistry().process(Moved_1.Moved, this.unit(), this);
+        this.ruleRegistry().process(Moved_1.default, this.unit(), this);
     }
 }
 exports.PlantForest = PlantForest;

@@ -1,13 +1,4 @@
 import {
-  Feature,
-  IFeatureRegistry,
-} from '@civ-clone/core-terrain-feature/Rules/Feature';
-import { Moved, IMovedRegistry } from '@civ-clone/core-unit/Rules/Moved';
-import {
-  MovementCost,
-  IMovementCostRegistry,
-} from '@civ-clone/core-unit/Rules/MovementCost';
-import {
   RuleRegistry,
   instance as ruleRegistryInstance,
 } from '@civ-clone/core-rule/RuleRegistry';
@@ -20,8 +11,11 @@ import {
   instance as turnInstance,
 } from '@civ-clone/core-turn-based-game/Turn';
 import DelayedAction from '@civ-clone/core-unit/DelayedAction';
-import { Forest } from '@civ-clone/base-terrain-forest/Forest';
-import { Horse } from '@civ-clone/base-terrain-feature-horse/Horse';
+import Feature from '@civ-clone/core-terrain-feature/Rules/Feature';
+import Forest from '@civ-clone/base-terrain-forest/Forest';
+import Horse from '@civ-clone/base-terrain-feature-horse/Horse';
+import Moved from '@civ-clone/core-unit/Rules/Moved';
+import MovementCost from '@civ-clone/core-unit/Rules/MovementCost';
 import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
 import PlantingForest from './Rules/PlantingForest';
@@ -45,7 +39,7 @@ export class PlantForest extends DelayedAction {
   }
 
   perform(): void {
-    const [moveCost]: number[] = (this.ruleRegistry() as IMovementCostRegistry)
+    const [moveCost]: number[] = this.ruleRegistry()
       .process(MovementCost, this.unit(), this)
       .sort((a: number, b: number): number => b - a);
 
@@ -57,11 +51,7 @@ export class PlantForest extends DelayedAction {
             this.from().terrain()
           );
 
-        (this.ruleRegistry() as IFeatureRegistry).process(
-          Feature,
-          Horse,
-          terrain
-        );
+        this.ruleRegistry().process(Feature, Horse, terrain);
 
         this.#terrainFeatureRegistry.unregister(...features);
 
@@ -70,7 +60,7 @@ export class PlantForest extends DelayedAction {
       PlantingForest
     );
 
-    (this.ruleRegistry() as IMovedRegistry).process(Moved, this.unit(), this);
+    this.ruleRegistry().process(Moved, this.unit(), this);
   }
 }
 

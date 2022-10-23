@@ -1,4 +1,3 @@
 # base-unit-action-plant-forest
 
-This is a template repo.
-
+This package provides the `PlantForest` `Action` for `Unit`s.
