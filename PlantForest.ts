@@ -23,7 +23,7 @@ import PlantingForest from './Rules/PlantingForest';
 // TODO: This is specific to the original Civilization and might need to be labelled as `-civ1` as other games have
 //  forests as a feature
 export class PlantForest extends DelayedAction {
-  #terrainFeatureRegistry: TerrainFeatureRegistry;
+  private _terrainFeatureRegistry: TerrainFeatureRegistry;
 
   constructor(
     from: Tile,
@@ -35,7 +35,7 @@ export class PlantForest extends DelayedAction {
   ) {
     super(from, to, unit, ruleRegistry, turn);
 
-    this.#terrainFeatureRegistry = terrainFeatureRegistry;
+    this._terrainFeatureRegistry = terrainFeatureRegistry;
   }
 
   perform(): void {
@@ -47,13 +47,13 @@ export class PlantForest extends DelayedAction {
       moveCost,
       (): void => {
         const terrain = new Forest(),
-          features = this.#terrainFeatureRegistry.getByTerrain(
+          features = this._terrainFeatureRegistry.getByTerrain(
             this.from().terrain()
           );
 
         this.ruleRegistry().process(Feature, Horse, terrain);
 
-        this.#terrainFeatureRegistry.unregister(...features);
+        this._terrainFeatureRegistry.unregister(...features);
 
         this.from().setTerrain(terrain);
       },
