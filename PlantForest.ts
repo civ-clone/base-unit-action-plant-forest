@@ -50,29 +50,47 @@ export class PlantForest extends DelayedAction {
 
     this.ruleRegistry().process(Moved, this.unit(), this);
   }
+
+  /**
+   * What finishing does, against the registries this action was constructed
+   * with.
+   *
+   * This was the closure passed to `perform`, bound to `this`. Converting it
+   * to a `PendingEffect` handler first moved it to module scope, where `this`
+   * is gone, and the registries became `…Instance` singletons — invisible in
+   * the game, which uses the singletons, and wrong everywhere else. A method
+   * keeps the original body — `this` read as `action` — and
+   * `registerDelayedAction` hands the handler the action that was performed,
+   * so this runs on that one.
+   *
+   * Static, because an instance method would not compile: a new public member
+   * makes this class unassignable to `Action` (`DataObject._keys:
+   * (keyof this)[]`), and it is passed as one to `MovementCost` and `Moved`.
+   * A static method of the class may still read its instances' private
+   * fields, and does not change `keyof this`.
+   */
+  static complete(action: PlantForest): void {
+    const terrain = new Forest(),
+      features = action._terrainFeatureRegistry.getByTerrain(
+        action.from().terrain()
+      );
+
+    action.ruleRegistry().process(Feature, Horse, terrain);
+
+    action._terrainFeatureRegistry.unregister(...features);
+
+    action.from().setTerrain(terrain);
+  }
 }
 
 // Registered here rather than passed to `perform` as a closure: a closure
 // cannot be written to a file, which is why a unit part-way through this could
-// not be saved. `this.from()` becomes `unit.tile()` — the same tile, since
-// `isCurrentTile` is one of this action's criteria — and the registries come
-// from their singletons rather than the action instance.
+// not be saved. The behaviour itself stays on the action, in `complete()`.
 registerDelayedAction({
   BusyRule: PlantingForest,
   handler: COMPLETE,
   action: (unit: Unit) => new PlantForest(unit.tile(), unit.tile(), unit),
-  complete: (unit: Unit) => {
-    const terrain = new Forest(),
-      features = terrainFeatureRegistryInstance.getByTerrain(
-        unit.tile().terrain()
-      );
-
-    ruleRegistryInstance.process(Feature, Horse, terrain);
-
-    terrainFeatureRegistryInstance.unregister(...features);
-
-    unit.tile().setTerrain(terrain);
-  },
+  complete: (unit, pendingEffect, action) => PlantForest.complete(action),
 });
 
 export default PlantForest;
