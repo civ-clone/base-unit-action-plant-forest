@@ -19,7 +19,7 @@ import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
 import registerDelayedAction from '@civ-clone/core-unit/registerDelayedAction';
 import Feature from '@civ-clone/core-terrain-feature/Rules/Feature';
-import Horse from '@civ-clone/base-terrain-feature-horse/Horse';
+import Game from '@civ-clone/base-terrain-feature-game/Game';
 
 export const COMPLETE = 'base-unit-action-plant-forest:complete';
 
@@ -75,7 +75,7 @@ export class PlantForest extends DelayedAction {
         action.from().terrain()
       );
 
-    action.ruleRegistry().process(Feature, Horse, terrain);
+    action.ruleRegistry().process(Feature, Game, terrain);
 
     action._terrainFeatureRegistry.unregister(...features);
 

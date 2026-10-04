@@ -11,7 +11,7 @@ const MovementCost_1 = require("@civ-clone/core-unit/Rules/MovementCost");
 const Forest_1 = require("@civ-clone/base-terrain-forest/Forest");
 const registerDelayedAction_1 = require("@civ-clone/core-unit/registerDelayedAction");
 const Feature_1 = require("@civ-clone/core-terrain-feature/Rules/Feature");
-const Horse_1 = require("@civ-clone/base-terrain-feature-horse/Horse");
+const Game_1 = require("@civ-clone/base-terrain-feature-game/Game");
 exports.COMPLETE = 'base-unit-action-plant-forest:complete';
 // TODO: This is specific to the original Civilization and might need to be labelled as `-civ1` as other games have
 //  forests as a feature
@@ -47,7 +47,7 @@ class PlantForest extends DelayedAction_1.default {
      */
     static complete(action) {
         const terrain = new Forest_1.default(), features = action._terrainFeatureRegistry.getByTerrain(action.from().terrain());
-        action.ruleRegistry().process(Feature_1.default, Horse_1.default, terrain);
+        action.ruleRegistry().process(Feature_1.default, Game_1.default, terrain);
         action._terrainFeatureRegistry.unregister(...features);
         action.from().setTerrain(terrain);
     }
