@@ -46,13 +46,16 @@ class PlantForest extends DelayedAction_1.default {
      * fields, and does not change `keyof this`.
      */
     static complete(action) {
-        const terrain = new Forest_1.default(), features = action._terrainFeatureRegistry.getByTerrain(action.from().terrain());
+        const terrain = new PlantForest.result(), features = action._terrainFeatureRegistry.getByTerrain(action.from().terrain());
         action.ruleRegistry().process(Feature_1.default, Game_1.default, terrain);
         action._terrainFeatureRegistry.unregister(...features);
         action.from().setTerrain(terrain);
     }
 }
 exports.PlantForest = PlantForest;
+// The terrain finishing leaves behind, a static for the same reason `complete` is: the UI is sent it to show what the
+//  action will do, so it is read from here rather than worked out again elsewhere.
+PlantForest.result = Forest_1.default;
 // Registered here rather than passed to `perform` as a closure: a closure
 // cannot be written to a file, which is why a unit part-way through this could
 // not be saved. The behaviour itself stays on the action, in `complete()`.

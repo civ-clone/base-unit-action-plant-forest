@@ -26,6 +26,10 @@ export const COMPLETE = 'base-unit-action-plant-forest:complete';
 // TODO: This is specific to the original Civilization and might need to be labelled as `-civ1` as other games have
 //  forests as a feature
 export class PlantForest extends DelayedAction {
+  // The terrain finishing leaves behind, a static for the same reason `complete` is: the UI is sent it to show what the
+  //  action will do, so it is read from here rather than worked out again elsewhere.
+  static readonly result = Forest;
+
   private _terrainFeatureRegistry: TerrainFeatureRegistry;
 
   constructor(
@@ -70,7 +74,7 @@ export class PlantForest extends DelayedAction {
    * fields, and does not change `keyof this`.
    */
   static complete(action: PlantForest): void {
-    const terrain = new Forest(),
+    const terrain = new PlantForest.result(),
       features = action._terrainFeatureRegistry.getByTerrain(
         action.from().terrain()
       );
