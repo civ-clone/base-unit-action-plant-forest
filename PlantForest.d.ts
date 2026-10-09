@@ -2,10 +2,12 @@ import { RuleRegistry } from '@civ-clone/core-rule/RuleRegistry';
 import { TerrainFeatureRegistry } from '@civ-clone/core-terrain-feature/TerrainFeatureRegistry';
 import { Turn } from '@civ-clone/core-turn-based-game/Turn';
 import DelayedAction from '@civ-clone/core-unit/DelayedAction';
+import Forest from '@civ-clone/base-terrain-forest/Forest';
 import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
 export declare const COMPLETE = 'base-unit-action-plant-forest:complete';
 export declare class PlantForest extends DelayedAction {
+  static readonly result: typeof Forest;
   private _terrainFeatureRegistry;
   constructor(
     from: Tile,
