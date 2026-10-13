@@ -18,8 +18,9 @@ import Forest from '@civ-clone/base-terrain-forest/Forest';
 import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
 import registerDelayedAction from '@civ-clone/core-unit/registerDelayedAction';
-import Feature from '@civ-clone/core-terrain-feature/Rules/Feature';
 import Game from '@civ-clone/base-terrain-feature-game/Game';
+import Shield from '@civ-clone/base-terrain-feature-shield/Shield';
+import TerrainFeature from '@civ-clone/core-terrain-feature/TerrainFeature';
 
 export const COMPLETE = 'base-unit-action-plant-forest:complete';
 
@@ -79,7 +80,15 @@ export class PlantForest extends DelayedAction {
         action.from().terrain()
       );
 
-    action.ruleRegistry().process(Feature, Game, terrain);
+    // A special resource stays with the square, as in Civ1: Oil, Gems or Horses become Game on the Forest. Grassland's
+    //  Shield isn't a special resource, so it doesn't carry over.
+    if (
+      features.some(
+        (feature: TerrainFeature): boolean => !(feature instanceof Shield)
+      )
+    ) {
+      action._terrainFeatureRegistry.register(new Game(terrain));
+    }
 
     action._terrainFeatureRegistry.unregister(...features);
 

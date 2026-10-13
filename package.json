@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@civ-clone/base-terrain-feature-game": "^0.1.0",
+    "@civ-clone/base-terrain-feature-shield": "^0.1.0",
     "@civ-clone/base-terrain-forest": "^0.1.0",
     "@civ-clone/core-rule": "^0.1.0",
     "@civ-clone/core-terrain-feature": "^0.1.0",
