@@ -10,8 +10,8 @@ const Moved_1 = require("@civ-clone/core-unit/Rules/Moved");
 const MovementCost_1 = require("@civ-clone/core-unit/Rules/MovementCost");
 const Forest_1 = require("@civ-clone/base-terrain-forest/Forest");
 const registerDelayedAction_1 = require("@civ-clone/core-unit/registerDelayedAction");
-const Feature_1 = require("@civ-clone/core-terrain-feature/Rules/Feature");
 const Game_1 = require("@civ-clone/base-terrain-feature-game/Game");
+const Shield_1 = require("@civ-clone/base-terrain-feature-shield/Shield");
 exports.COMPLETE = 'base-unit-action-plant-forest:complete';
 // TODO: This is specific to the original Civilization and might need to be labelled as `-civ1` as other games have
 //  forests as a feature
@@ -47,7 +47,11 @@ class PlantForest extends DelayedAction_1.default {
      */
     static complete(action) {
         const terrain = new PlantForest.result(), features = action._terrainFeatureRegistry.getByTerrain(action.from().terrain());
-        action.ruleRegistry().process(Feature_1.default, Game_1.default, terrain);
+        // A special resource stays with the square, as in Civ1: Oil, Gems or Horses become Game on the Forest. Grassland's
+        //  Shield isn't a special resource, so it doesn't carry over.
+        if (features.some((feature) => !(feature instanceof Shield_1.default))) {
+            action._terrainFeatureRegistry.register(new Game_1.default(terrain));
+        }
         action._terrainFeatureRegistry.unregister(...features);
         action.from().setTerrain(terrain);
     }
