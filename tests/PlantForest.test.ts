@@ -1,68 +1,97 @@
-import Forest from '@civ-clone/base-terrain-forest/Forest';
-import Game from '@civ-clone/base-terrain-feature-game/Game';
-import Grassland from '@civ-clone/base-terrain-grassland/Grassland';
-import Oil from '@civ-clone/base-terrain-feature-oil/Oil';
-import Plains from '@civ-clone/base-terrain-plains/Plains';
 import PlantForest from '../PlantForest';
+import Effect from '@civ-clone/core-rule/Effect';
+import Forest from '@civ-clone/base-terrain-forest/Forest';
 import RuleRegistry from '@civ-clone/core-rule/RuleRegistry';
-import Shield from '@civ-clone/base-terrain-feature-shield/Shield';
-import Swamp from '@civ-clone/base-terrain-swamp/Swamp';
 import Terrain from '@civ-clone/core-terrain/Terrain';
+import TerrainChanged from '@civ-clone/core-world/Rules/TerrainChanged';
 import TerrainFeature from '@civ-clone/core-terrain-feature/TerrainFeature';
 import TerrainFeatureRegistry from '@civ-clone/core-terrain-feature/TerrainFeatureRegistry';
 import Tile from '@civ-clone/core-world/Tile';
 import Unit from '@civ-clone/core-unit/Unit';
 import World from '@civ-clone/core-world/World';
+import { carryFeatures } from '@civ-clone/base-terrain-feature/lib/replaceFeatures';
 import { expect } from 'chai';
 
+class Before extends Terrain {}
+class Ore extends TerrainFeature {}
+class Fruit extends TerrainFeature {}
+
 describe('PlantForest', (): void => {
-  // A special resource stays with the square (civ-clone/web-renderer#281); Grassland's Shield isn't one.
-  (
-    [
-      [Swamp, Oil, Game],
-      [Grassland, Shield, null],
-      [Plains, null, null],
-    ] as [
-      typeof Terrain,
-      typeof TerrainFeature | null,
-      typeof TerrainFeature | null
-    ][]
-  ).forEach(([TerrainType, FeatureType, ExpectedFeature]): void => {
-    it(`should turn ${TerrainType.name}${
-      FeatureType ? ` with ${FeatureType.name}` : ''
-    } into Forest with ${
-      ExpectedFeature ? ExpectedFeature.name : 'no special'
-    }`, (): void => {
-      const ruleRegistry = new RuleRegistry(),
-        terrainFeatureRegistry = new TerrainFeatureRegistry(),
-        tile = new Tile(
-          0,
-          0,
-          new TerrainType(),
-          null as unknown as World,
-          ruleRegistry
-        );
+  const complete = (
+    ruleRegistry: RuleRegistry,
+    terrainFeatureRegistry: TerrainFeatureRegistry
+  ): [Tile, Terrain] => {
+    const tile = new Tile(
+        0,
+        0,
+        new Before(),
+        null as unknown as World,
+        ruleRegistry
+      ),
+      from = tile.terrain();
 
-      if (FeatureType !== null) {
-        terrainFeatureRegistry.register(new FeatureType(tile.terrain()));
-      }
+    terrainFeatureRegistry.register(new Ore(from), new Fruit(from));
 
-      PlantForest.complete(
-        new PlantForest(
-          tile,
-          tile,
-          null as unknown as Unit,
-          ruleRegistry,
-          terrainFeatureRegistry
-        )
-      );
-
-      expect(tile.terrain()).to.instanceof(Forest);
-      expect(
+    PlantForest.complete(
+      new PlantForest(
+        tile,
+        tile,
+        null as unknown as Unit,
+        ruleRegistry,
         terrainFeatureRegistry
-          .getByTerrain(tile.terrain())
-          .map((feature: TerrainFeature) => feature.constructor)
-      ).to.deep.equal(ExpectedFeature === null ? [] : [ExpectedFeature]);
-    });
+      )
+    );
+
+    return [tile, from];
+  };
+
+  it('should give the square a new Forest and process `TerrainChanged` once', (): void => {
+    const ruleRegistry = new RuleRegistry(),
+      seen: [Tile, Terrain, Terrain][] = [];
+
+    ruleRegistry.register(
+      new TerrainChanged(
+        new Effect((tile: Tile, from: Terrain, to: Terrain): void => {
+          seen.push([tile, from, to]);
+        })
+      )
+    );
+
+    const [tile, from] = complete(ruleRegistry, new TerrainFeatureRegistry());
+
+    expect(tile.terrain()).to.instanceof(Forest);
+    expect(seen).to.deep.equal([[tile, from, tile.terrain()]]);
+  });
+
+  it("should carry the square's features onto the new terrain with a `carryFeatures` rule", (): void => {
+    const ruleRegistry = new RuleRegistry(),
+      terrainFeatureRegistry = new TerrainFeatureRegistry();
+
+    ruleRegistry.register(
+      new TerrainChanged(new Effect(carryFeatures(terrainFeatureRegistry)))
+    );
+
+    const [tile, from] = complete(ruleRegistry, terrainFeatureRegistry);
+
+    expect(
+      terrainFeatureRegistry
+        .getByTerrain(tile.terrain())
+        .map((feature: TerrainFeature) => feature.constructor)
+    ).to.deep.equal([Ore, Fruit]);
+    expect(terrainFeatureRegistry.getByTerrain(from)).to.deep.equal([]);
+  });
+
+  it('should leave the features alone when no rule moves them', (): void => {
+    const terrainFeatureRegistry = new TerrainFeatureRegistry(),
+      [tile, from] = complete(new RuleRegistry(), terrainFeatureRegistry);
+
+    expect(terrainFeatureRegistry.getByTerrain(tile.terrain())).to.deep.equal(
+      []
+    );
+    expect(
+      terrainFeatureRegistry
+        .getByTerrain(from)
+        .map((feature: TerrainFeature) => feature.constructor)
+    ).to.deep.equal([Ore, Fruit]);
   });
 });
