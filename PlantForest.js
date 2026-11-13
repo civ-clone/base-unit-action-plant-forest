@@ -10,15 +10,16 @@ const Moved_1 = require("@civ-clone/core-unit/Rules/Moved");
 const MovementCost_1 = require("@civ-clone/core-unit/Rules/MovementCost");
 const Forest_1 = require("@civ-clone/base-terrain-forest/Forest");
 const registerDelayedAction_1 = require("@civ-clone/core-unit/registerDelayedAction");
-const Game_1 = require("@civ-clone/base-terrain-feature-game/Game");
-const Shield_1 = require("@civ-clone/base-terrain-feature-shield/Shield");
 exports.COMPLETE = 'base-unit-action-plant-forest:complete';
 // TODO: This is specific to the original Civilization and might need to be labelled as `-civ1` as other games have
 //  forests as a feature
 class PlantForest extends DelayedAction_1.default {
+    /**
+     * `terrainFeatureRegistry` is no longer used: the rule set's `TerrainChanged`
+     * rules move the square's features. It stays so the signature doesn't change.
+     */
     constructor(from, to, unit, ruleRegistry = RuleRegistry_1.instance, terrainFeatureRegistry = TerrainFeatureRegistry_1.instance, turn = Turn_1.instance) {
         super(from, to, unit, ruleRegistry, turn);
-        this._terrainFeatureRegistry = terrainFeatureRegistry;
     }
     perform() {
         const [moveCost] = this.ruleRegistry()
@@ -28,8 +29,8 @@ class PlantForest extends DelayedAction_1.default {
         this.ruleRegistry().process(Moved_1.default, this.unit(), this);
     }
     /**
-     * What finishing does, against the registries this action was constructed
-     * with.
+     * What finishing does: the square takes `result`, and its tile's rules
+     * (`TerrainChanged`) decide what follows it onto the new terrain.
      *
      * This was the closure passed to `perform`, bound to `this`. Converting it
      * to a `PendingEffect` handler first moved it to module scope, where `this`
@@ -42,18 +43,12 @@ class PlantForest extends DelayedAction_1.default {
      * Static, because an instance method would not compile: a new public member
      * makes this class unassignable to `Action` (`DataObject._keys:
      * (keyof this)[]`), and it is passed as one to `MovementCost` and `Moved`.
-     * A static method of the class may still read its instances' private
-     * fields, and does not change `keyof this`.
+     * A static method does not change `keyof this`.
      */
     static complete(action) {
-        const terrain = new PlantForest.result(), features = action._terrainFeatureRegistry.getByTerrain(action.from().terrain());
-        // A special resource stays with the square, as in Civ1: Oil, Gems or Horses become Game on the Forest. Grassland's
-        //  Shield isn't a special resource, so it doesn't carry over.
-        if (features.some((feature) => !(feature instanceof Shield_1.default))) {
-            action._terrainFeatureRegistry.register(new Game_1.default(terrain));
-        }
-        action._terrainFeatureRegistry.unregister(...features);
-        action.from().setTerrain(terrain);
+        // What follows the square onto its new terrain (its features, for one) is the rule set's `TerrainChanged` rules'
+        //  to decide.
+        action.from().setTerrain(new PlantForest.result());
     }
 }
 exports.PlantForest = PlantForest;
